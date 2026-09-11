@@ -1,0 +1,51 @@
+[package]
+name = "moongraphql_builder"
+version = "0.1.0"
+authors = ["DinaMoon"]
+edition = "2024"
+description = "Type-state GraphQL query and selector builder with compile-time AST deduplication, complexity budgeting, and Project Fluent i18n."
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/DinaMoon/moongraphql_builder"
+homepage = "https://github.com/DinaMoon/moongraphql_builder"
+documentation = "https://docs.rs/moongraphql_builder"
+readme = "README.md"
+keywords = ["graphql", "builder", "typestate", "complexity", "fluent"]
+categories = ["web-programming", "development-tools", "data-structures"]
+publish = true
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+[features]
+default = ["tokio"]
+# Enables Task-Local locale context storage via Tokio
+tokio = ["dep:tokio"]
+
+[dependencies]
+# Serialization & Deserialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Error Management
+thiserror = "2.0"
+
+# Diagnostic Logging
+log = { version = "0.4", features = ["std"] }
+
+# Internationalization & Localization (Mozilla Project Fluent)
+fluent = "0.17"
+intl-memoizer = "0.5"
+unic-langid = "0.9"
+sys-locale = "0.3"
+
+# Asynchronous Utilities & Task-Local Contexts
+tokio = { version = "1.53", features = ["rt", "macros"], optional = true }
+futures = "0.3"
+
+[dev-dependencies]
+dotenvy = "0.15"
+env_logger = "0.11"
+pretty_assertions = "1.4"
+tokio = { version = "1.53", features = ["full"] }
+mimalloc = "0.1"
