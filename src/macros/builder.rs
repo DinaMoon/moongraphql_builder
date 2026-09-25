@@ -313,13 +313,13 @@ macro_rules! define_query_builder {
             /// Internal helper for preemptive argument validation.
             #[doc(hidden)]
             pub fn _validate_args(&self) -> $crate::error::Result<()> {
-                let meta = $crate::validation::ArgMeta {
-                    arg_name: stringify!($root_ident),
-                    gql_arg_name: stringify!($root_ident),
-                    root_query: stringify!($root_ident),
-                };
-
                 $(
+                    let meta = $crate::validation::ArgMeta {
+                        arg_name: stringify!($arg_fn),
+                        gql_arg_name: stringify!($gql_arg),
+                        root_query: stringify!($root_ident),
+                    };
+
                     $crate::define_query_builder! {
                         @check_required
                         self.$arg_fn,

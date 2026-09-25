@@ -165,14 +165,18 @@ pub trait GqlInspectable {
     /// # Returns
     ///
     /// `Some(limit)` if configured via `.with_max_complexity(n)`, or `None` to use global validator defaults.
-    fn max_complexity(&self) -> Option<u32>;
+    fn max_complexity(&self) -> Option<u32> {
+        None
+    }
 
     /// Retrieves the locally overridden depth budget limit (if explicitly specified).
     ///
     /// # Returns
     ///
     /// `Some(depth)` if configured via `.with_max_depth(n)`, or `None` to use global validator defaults.
-    fn max_depth(&self) -> Option<u32>;
+    fn max_depth(&self) -> Option<u32> {
+        None
+    }
 }
 
 /// Trait implemented by query builders supporting preemptive client-side parameter validation.

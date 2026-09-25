@@ -240,6 +240,46 @@ macro_rules! define_selector {
         }
     };
 
+    // 4C. Attribute parsing complete (default_str omitted -> defaults to empty string)
+    (
+        @parse_struct_attrs
+        struct = ($vis:vis struct $name:ident),
+        raw_attrs = (),
+        clean_docs = [ $( #[$($docs:tt)*] )* ],
+        default_str = None,
+        default_cost = (Some($default_cost:expr)),
+        fields = $fields:tt
+    ) => {
+        $crate::define_selector! {
+            @build_struct
+            default = "",
+            default_cost = $default_cost,
+            docs = [ $( #[$($docs)*] )* ],
+            struct = ($vis struct $name),
+            fields = $fields
+        }
+    };
+
+    // 4D. Attribute parsing complete (both default_str and default_complexity omitted)
+    (
+        @parse_struct_attrs
+        struct = ($vis:vis struct $name:ident),
+        raw_attrs = (),
+        clean_docs = [ $( #[$($docs:tt)*] )* ],
+        default_str = None,
+        default_cost = None,
+        fields = $fields:tt
+    ) => {
+        $crate::define_selector! {
+            @build_struct
+            default = "",
+            default_cost = 1,
+            docs = [ $( #[$($docs)*] )* ],
+            struct = ($vis struct $name),
+            fields = $fields
+        }
+    };
+
     // =========================================================================
     // 🏗️ SECTION 4: STRUCT GENERATION AND BUILDABLESELECTOR TRAIT IMPLEMENTATION
     // =========================================================================

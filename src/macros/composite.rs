@@ -39,9 +39,11 @@
 ///
 /// // 1. Mock field selectors and query builders
 /// define_selector! {
+///     #[default = "id name"]
 ///     pub struct ViewerSelector { id: id, name: name }
 /// }
 /// define_selector! {
+///     #[default = "id title"]
 ///     pub struct ItemSelector { id: id, title: title }
 /// }
 ///

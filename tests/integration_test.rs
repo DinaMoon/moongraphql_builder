@@ -621,7 +621,7 @@ fn it_test_argument_validation_max_error() {
     assert_eq!(
         result,
         Err(MoongqlError::ValidationError(
-            "Аргумент 'score' в запросе 'animes' должен быть не менее 10 (получено: 15)"
+            "Аргумент 'score' в запросе 'animes' должен быть не более 10 (получено: 15)"
                 .to_string()
         ))
     );
