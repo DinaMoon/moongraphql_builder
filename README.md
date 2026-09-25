@@ -59,7 +59,7 @@ Add `moongraphql_builder` to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-moongraphql_builder = "0.1.0"
+moongraphql_builder = "0.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 ```
