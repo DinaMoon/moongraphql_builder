@@ -312,6 +312,9 @@ macro_rules! define_composite_query {
 
             /// Extracts composite document components: subqueries, variable declarations, and merged JSON variables.
             ///
+            /// Pre-allocates vector and dictionary buffers based on registered field count to eliminate
+            /// intermediate re-allocations and heap churn during multi-root aggregation.
+            ///
             /// # Returns
             ///
             /// A tuple of:
@@ -325,18 +328,19 @@ macro_rules! define_composite_query {
                 Vec<String>,
                 serde_json::Map<String, serde_json::Value>,
             ) {
-                let mut root_queries = Vec::new();
-                let mut all_decls = Vec::new();
-                let mut all_vars = serde_json::Map::new();
+                // Pre-calculate registered subquery count to reserve exact buffer capacities
+                let field_count = [$( stringify!($field_fn) ),*].len();
+
+                let mut root_queries = Vec::with_capacity(field_count);
+                let mut all_decls = Vec::with_capacity(field_count * 2);
+                let mut all_vars = serde_json::Map::with_capacity(field_count * 2);
 
                 $(
                     if let Some(ref b) = self.$field_fn {
                         let (q_part, decls, vars) = $crate::traits::BuildableQuery::_build_query_parts(b, self.use_variables);
                         root_queries.push(q_part);
                         all_decls.extend(decls);
-                        for (k, v) in vars {
-                            all_vars.insert(k, v);
-                        }
+                        all_vars.extend(vars);
                     }
                 )*
 
@@ -353,6 +357,9 @@ macro_rules! define_composite_query {
 
             /// Compiles the final cohesive composite GraphQL document string and its merged `variables` dictionary.
             ///
+            /// Assembles the complete document in a single pre-sized buffer, completely bypassing
+            /// intermediate `.join()` and `format!()` heap allocations.
+            ///
             /// # Returns
             ///
             /// A tuple of:
@@ -361,16 +368,45 @@ macro_rules! define_composite_query {
             pub fn build_payload_parts(&self) -> (String, Option<serde_json::Value>) {
                 let (root_queries, all_decls, all_vars) = self.build_payload_details();
 
-                let query_body = if root_queries.is_empty() {
-                    String::new()
-                } else {
-                    root_queries.join(" ")
-                };
+                let final_query = {
+                    let has_decls = self.use_variables && !all_decls.is_empty();
 
-                let final_query = if self.use_variables && !all_decls.is_empty() {
-                    format!("query ({}) {{ {} }}", all_decls.join(", "), query_body)
-                } else {
-                    format!("query {{ {} }}", query_body)
+                    // Pre-calculate exact buffer capacity byte-for-byte:
+                    // "query () {  }" is 14 bytes, "query {  }" is 10 bytes
+                    let prefix_and_wrap_len = if has_decls { 14 } else { 10 };
+                    let decls_len: usize = if has_decls {
+                        all_decls.iter().map(|d| d.len()).sum::<usize>()
+                            + (all_decls.len().saturating_sub(1) * 2) // separator ", "
+                    } else {
+                        0
+                    };
+                    let roots_len: usize = root_queries.iter().map(|r| r.len()).sum::<usize>()
+                        + root_queries.len().saturating_sub(1); // whitespace separator " "
+
+                    let mut doc = String::with_capacity(prefix_and_wrap_len + decls_len + roots_len);
+
+                    if has_decls {
+                        doc.push_str("query (");
+                        for (i, decl) in all_decls.iter().enumerate() {
+                            if i > 0 {
+                                doc.push_str(", ");
+                            }
+                            doc.push_str(decl);
+                        }
+                        doc.push_str(") { ");
+                    } else {
+                        doc.push_str("query { ");
+                    }
+
+                    for (i, root) in root_queries.iter().enumerate() {
+                        if i > 0 {
+                            doc.push(' ');
+                        }
+                        doc.push_str(root);
+                    }
+
+                    doc.push_str(" }");
+                    doc
                 };
 
                 let final_vars = if all_vars.is_empty() {
