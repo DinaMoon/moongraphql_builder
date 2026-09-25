@@ -1,6 +1,6 @@
 [package]
 name = "moongraphql_builder"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["DinaMoon"]
 edition = "2024"
 description = "Type-state GraphQL query and selector builder with compile-time AST deduplication, complexity budgeting, and Project Fluent i18n."
